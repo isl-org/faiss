@@ -99,11 +99,37 @@ handle_Quantizer(ScalarQuantizer)
 def handle_Index(the_class):
 
     def replacement_add(self, x):
+        """Adds vectors to the index. 
+        The index must be trained before vectors can be added to it.
+        The vectors are implicitly numbered in sequence. When `n` vectors are 
+        added to the index, they are given ids `ntotal`, `ntotal + 1`, ..., `ntotal + n - 1`.
+        
+        Parameters
+        ----------
+        x : array_like
+            Query vectors, shape (n, d) where d is appropriate for the index.
+            `dtype` must be float32.
+        """
+
         n, d = x.shape
         assert d == self.d
         self.add_c(n, swig_ptr(x))
 
     def replacement_add_with_ids(self, x, ids):
+        """Adds vectors with arbitrary ids to the index (not all indexes support this).
+        The index must be trained before vectors can be added to it.
+        Vector `i` is stored in `x[i]` and has id `ids[i]`.
+
+
+        Parameters
+        ----------
+        x : array_like
+            Query vectors, shape (n, d) where d is appropriate for the index.
+            `dtype` must be float32.
+        ids : array_like 
+            Array if ids of size n. The ids must be of type `int64`. Note that `-1` is reserved 
+            in result lists to mean "not found" so it's better to not use it as an id.
+        """
         n, d = x.shape
         assert d == self.d
 
@@ -123,12 +149,21 @@ def handle_Index(the_class):
         return labels
 
     def replacement_train(self, x):
+        """Trains the index on a representative set of vectors.
+        The index must be trained before vectors can be added to it.
+        
+        Parameters
+        ----------
+        x : array_like
+            Query vectors, shape (n, d) where d is appropriate for the index.
+            `dtype` must be float32.
+        """
         n, d = x.shape
         assert d == self.d
         self.train_c(n, swig_ptr(x))
 
     def replacement_search(self, x, k, D=None, I=None):
-        """Search k nearest neighbors of the set of vectors x in the index.
+        """Find the k nearest neighbors of the set of vectors x in the index.
 
         Parameters
         ----------
@@ -138,16 +173,18 @@ def handle_Index(the_class):
         k : int
             Number of nearest neighbors.
         D : array_like, optional
-            Distance array to store the result 
+            Distance array to store the result. 
         I : array_like, optional
-            Labels array to store the results 
+            Labels array to store the results. 
 
         Returns
         -------
         D : array_like
-            Distances of the nearest neighbors, shape (n, k)
+            Distances of the nearest neighbors, shape (n, k). When not enough results are found
+            the label is set to +Inf or -Inf.
         I : array_like
-            Labels of the nearest neighbors, shape (n, k)
+            Labels of the nearest neighbors, shape (n, k). 
+            When not enough results are found, the label is set to -1
         """
       
         n, d = x.shape
@@ -167,6 +204,34 @@ def handle_Index(the_class):
         return D, I
 
     def replacement_search_and_reconstruct(self, x, k, D=None, I=None, R=None):
+        """Find the k nearest neighbors of the set of vectors x in the index, 
+        and return an approximation of these vectors. 
+
+        Parameters
+        ----------
+        x : array_like
+            Query vectors, shape (n, d) where d is appropriate for the index.
+            `dtype` must be float32.
+        k : int
+            Number of nearest neighbors.
+        D : array_like, optional
+            Distance array to store the result. 
+        I : array_like, optional
+            Labels array to store the result. 
+        R : array_like, optional
+            reconstruction array to store 
+            
+        Returns
+        -------
+        D : array_like
+            Distances of the nearest neighbors, shape (n, k). When not enough results are found
+            the label is set to +Inf or -Inf.
+        I : array_like
+            Labels of the nearest neighbors, shape (n, k). When not enough results are found, 
+            the label is set to -1
+        R : array_like
+            Approximate nearest neighbor vectors, shape (n, k, d). 
+        """
         n, d = x.shape
         assert d == self.d
 
