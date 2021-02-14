@@ -302,7 +302,7 @@ void IndexIVF::search (idx_t n, const float *x, idx_t k,
 
 
     if ((parallel_mode & ~PARALLEL_MODE_NO_HEAP_INIT) == 0) {
-        int nt = std::min(omp_get_max_threads(), int(n));
+        int nt = std::min(GetMaxThreads(), int(n));
         std::vector<IndexIVFStats> stats(nt);
         std::mutex exception_mutex;
         std::string exception_string;
@@ -639,7 +639,7 @@ void IndexIVF::range_search_preassigned (
 
     int pmode = this->parallel_mode & ~PARALLEL_MODE_NO_HEAP_INIT;
     // don't start parallel section if single query
-    bool do_parallel = omp_get_max_threads() >= 2 && (
+    bool do_parallel = GetMaxThreads() >= 2 && (
             pmode == 3 ? false :
             pmode == 0 ? nx > 1 :
             pmode == 1 ? nprobe > 1 :

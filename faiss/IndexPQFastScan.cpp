@@ -12,7 +12,7 @@
 #include <memory>
 #include <limits.h>
 
-#include <omp.h>
+#include <faiss/ParallelUtil.h>
 
 
 #include <faiss/impl/FaissAssert.h>
@@ -290,7 +290,7 @@ void IndexPQFastScan::search_dispatch_implem(
         }
     } else if (impl >= 12 && impl <= 15) {
         FAISS_THROW_IF_NOT(ntotal < INT_MAX);
-        int nt = std::min(omp_get_max_threads(), int(n));
+        int nt = std::min(GetMaxThreads(), int(n));
         if (nt < 2) {
             if (impl == 12 || impl == 13) {
                 search_implem_12<C>(n, x, k, distances, labels, impl);
