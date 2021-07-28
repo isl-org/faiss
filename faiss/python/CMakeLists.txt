@@ -68,7 +68,7 @@ endif()
 
 if(FAISS_ENABLE_GPU)
   find_package(CUDAToolkit REQUIRED)
-  target_link_libraries(swigfaiss PRIVATE CUDA::cudart)
+  target_link_libraries(swigfaiss PRIVATE CUDA::cudart_static)
 endif()
 
 find_package(OpenMP REQUIRED)
